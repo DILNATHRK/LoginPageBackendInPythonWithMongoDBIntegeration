@@ -18,7 +18,9 @@ def hash_password(password):
     hashed_password = bcrypt.hashpw(password.encode(), salt)
     return hashed_password
 
-def verify_password(provided_password, hashed_password):
+def verify_password(hashed_password,provided_password,):
+    print("provided_password  ",provided_password)
+    print("hashed_password  ",hashed_password)
     try:
         # Encode hashed password as bytes
         hashed_password_bytes = hashed_password.encode('utf-8')
@@ -39,17 +41,16 @@ def login(request):
     data=request.POST
     email=data.get('email')
     password=data.get('password')
-
+    print("email is ",email)
+    print("password is ",password)
     found_user=collection.find_one({"email":email})
     if not found_user:
         return JsonResponse({"status":"error","message":"email or password is incorrect"})
     password_is_valid,message=verify_password(found_user['password'],password)
     if not password_is_valid:
         return JsonResponse({"status":"error","message":message},status=400)
-    if found_user['status']!=1:
-        return JsonResponse({"status":"error","message":"access not available on this account !contact admin"})
     
-    token,refresh_token=helpers.login_generate_new_token(found_user['email'],found_user['password'],found_user['role'])
-    helpers.login_update_all_token(token,found_user['email'],found_user['role']) 
+    token,refresh_token=helpers.login_generate_new_token(found_user['email'],found_user['password'])
+    helpers.login_update_all_token(token,found_user['email']) 
 
     return JsonResponse({"status":"success","message":"logined successfully","token":token,"refresh_token":refresh_token})   
